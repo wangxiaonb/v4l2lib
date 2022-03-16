@@ -1,0 +1,28 @@
+{
+    "files.associations": {
+        "unistd.h": "c",
+        "videodev2.h": "c",
+        "array": "c",
+        "functional": "c",
+        "istream": "c",
+        "ostream": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c",
+        "stdio.h": "c",
+        "python.h": "c",
+        "*.tcc": "cpp",
+        "random": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "*.ipp": "cpp",
+        "bitset": "cpp",
+        "initializer_list": "cpp",
+        "thread": "cpp",
+        "optional": "cpp",
+        "ratio": "cpp",
+        "system_error": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "Disabled",
+    "cmake.configureOnOpen": false
+}
