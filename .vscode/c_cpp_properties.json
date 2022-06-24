@@ -3,6 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
+                "/usr/include/opencv4/opencv2/*",
                 "/usr/include/python3.9/*",
                 "${workspaceFolder}/*"
             ],

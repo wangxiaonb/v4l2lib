@@ -86,7 +86,7 @@ public:
             printf("Libv4l didn't accept color format. Can't proceed.\n");
             exit(EXIT_FAILURE);
         }
-        if ((fmt.fmt.pix.width != height) || (fmt.fmt.pix.height != width))
+        if ((fmt.fmt.pix.width != width) || (fmt.fmt.pix.height != height))
             printf("Warning: v4l2 driver is sending image at %dx%d\n", fmt.fmt.pix.width, fmt.fmt.pix.height);
 
         CLEAR(req);

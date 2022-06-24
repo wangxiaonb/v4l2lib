@@ -29,9 +29,11 @@ analogue_gain = 0x009e0903  # (int) : min=16 max=248 step=1 default=16 value=16
 link_frequency = 0x009f0901
 # (int64)  : min=200000000 max=200000000 step=1 default=200000000 value=2000000
 pixel_rate = 0x009f0902
+test_pattern = 0x009f0903
 
 ##########################################################################
-width, height = 1280, 800
+width, height = 1600, 1300
+# width, height = 1280, 800
 # width, height = 1280, 720
 # width, height = 640, 480
 # width, height = 640, 400
@@ -53,13 +55,13 @@ cv2.moveWindow(windowName, 0, 20)
 camera = v4l2.open('/dev/video'+camera_num, width, height, 'GREY')
 # v4l2.setformat(camera,width,height,'GREY')
 
-v4l2.set_control(camera, exposure, 800)
+v4l2.set_control(camera, exposure, 1696)
 value = v4l2.get_control(camera, exposure)
 
-v4l2.set_control(camera, analogue_gain, 24)
+v4l2.set_control(camera, analogue_gain, 1000)
 value = v4l2.get_control(camera, analogue_gain)
 
-v4l2.set_control(camera, vertical_blanking, 1200)
+v4l2.set_control(camera, vertical_blanking, 400)
 value = v4l2.get_control(camera, vertical_blanking)
 
 v4l2.active_fps(camera, 80)
@@ -82,8 +84,8 @@ while True:
     image_array = np.frombuffer(data, dtype=np.uint8)
     image = image_array.reshape(height, width)
 
-    # image = cv2.resize(image, (640, 400))
-    image = cv2.flip(image, 0)
+    # image = cv2.resize(image, (800, 650))
+    # image = cv2.flip(image, 0)
 
     image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
 

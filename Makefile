@@ -1,8 +1,9 @@
 ##################################################################
 # TARGET = ${notdir $(CURDIR)}
 # TARGET = v4l2grab
-# TARGET = test
-TARGET = python_extension
+TARGET = test
+# TARGET = imx477
+# TARGET = python_extension
 
 OBJ_DIR = build
 

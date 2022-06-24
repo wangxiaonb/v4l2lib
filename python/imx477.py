@@ -4,7 +4,6 @@ import numpy as np
 import sys
 import time
 import argparse
-import os
 
 # User Controls
 exposure = 0x00980911  # (int) : min=4 max=906 step=1 default=800 value=800
@@ -30,8 +29,12 @@ link_frequency = 0x009f0901
 # (int64)  : min=200000000 max=200000000 step=1 default=200000000 value=2000000
 pixel_rate = 0x009f0902
 
+test_pattern = 0x009f0903
+digital_gain =0x009f0905
+
 ##########################################################################
-width, height = 1280, 800
+# width, height = 2028, 1520
+width, height = 1332, 990
 # width, height = 1280, 720
 # width, height = 640, 480
 # width, height = 640, 400
@@ -44,52 +47,54 @@ args = parser.parse_args()
 
 camera_num = args.number
 
-windowName = 'camera'+camera_num
-cv2.namedWindow(windowName, cv2.WINDOW_AUTOSIZE)
-# cv2.setWindowProperty(windowName, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-# cv2.resizeWindow(windowName, width, height)
-cv2.moveWindow(windowName, 0, 20)
-
-camera = v4l2.open('/dev/video'+camera_num, width, height, 'GREY')
+camera = v4l2.open('/dev/video'+camera_num, width, height, 'RG10')
 # v4l2.setformat(camera,width,height,'GREY')
 
-v4l2.set_control(camera, exposure, 800)
-value = v4l2.get_control(camera, exposure)
+v4l2.set_control(camera, exposure, 2000)
+# v4l2.set_control(camera, horizontal_flip, 0)
+# v4l2.set_control(camera, vertical_flip, 0)
 
-v4l2.set_control(camera, analogue_gain, 24)
+v4l2.set_control(camera, analogue_gain, 800)
+v4l2.set_control(camera, digital_gain, 1600)
+
+# v4l2.set_control(camera, test_pattern, 0)
+# value = v4l2.get_control(camera, test_pattern)
+
+v4l2.set_control(camera, vertical_blanking, 677)
+
+value = v4l2.get_control(camera, vertical_blanking)
+value = v4l2.get_control(camera, exposure)
 value = v4l2.get_control(camera, analogue_gain)
 
-v4l2.set_control(camera, vertical_blanking, 1200)
-value = v4l2.get_control(camera, vertical_blanking)
 
-v4l2.active_fps(camera, 80)
+v4l2.active_fps(camera, 30)
 # v4l2.print_fps(camera, 1)
 
 v4l2.start(camera)
 
-# os.system("i2cset -y -f 0 0x60 0x4f 0x00 0x01 i")
-# os.system("i2cset -y -f 0 0x60 0x30 0x30 0x04 i")
-# os.system("i2cset -y -f 0 0x60 0x30 0x3F 0x01 i")
-# os.system("i2cset -y -f 0 0x60 0x30 0x2C 0x00 i")
-# os.system("i2cset -y -f 0 0x60 0x30 0x2F 0x7F i")
-# os.system("i2cset -y -f 0 0x60 0x38 0x23 0x30 i")
-# os.system("i2cset -y -f 0 0x60 0x01 0x00 0x00 i")
+# width, height = 2032, 1520
+width, height = 1344, 990
 
 while True:
     data = v4l2.read(camera)
     # data = bytearray(data)
 
-    image_array = np.frombuffer(data, dtype=np.uint8)
+    image_array = np.frombuffer(data, dtype=np.uint16)
+    image_array = image_array >> 2
+    image_array = np.array(image_array, dtype=np.uint8)
     image = image_array.reshape(height, width)
+    # image = image >>4
+    # image = np.array(image,dtype=np.uint8)
 
-    # image = cv2.resize(image, (640, 400))
-    image = cv2.flip(image, 0)
+    image = cv2.cvtColor(image, cv2.COLOR_BayerRG2GRAY)
+    # image = cv2.cvtColor(image, cv2.COLOR_BayerRG2BGR)
 
-    image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+    image = cv2.resize(image, (int(width*0.6), int(height*0.6)))
 
     fps = v4l2.get_fps(camera)
-    image = cv2.putText(image, 'FPS:'+str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (127, 250, 127), 1)
-    cv2.imshow(windowName, image)
+    image = cv2.putText(image, 'FPS:'+str(fps), (10, 30),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (127, 250, 127), 1)
+    cv2.imshow('camera'+camera_num, image)
     key = cv2.waitKey(1)
     if key == ord('q'):
         break
