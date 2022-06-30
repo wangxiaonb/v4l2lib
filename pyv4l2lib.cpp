@@ -65,6 +65,33 @@ PyObject *py_read(PyObject *self, PyObject *args)
     // return object;
 }
 
+PyObject *py_read2(PyObject *self, PyObject *args)
+{
+    void *start;
+    size_t length;
+    unsigned long handle;
+    PyArg_ParseTuple(args, "l", &handle);
+    clibv4l2 *v4l2 = (clibv4l2 *)handle;
+    v4l2->dqbuf(&start, &length);
+
+#if PY_MAJOR_VERSION < 3
+    PyObject *result = PyString_FromStringAndSize(
+#else
+    PyObject *result = PyBytes_FromStringAndSize(
+#endif
+        (const char*)start, length);
+
+    // PyObject *result = PyMemoryView_FromMemory((char *)start, length, PyBUF_READ);
+
+    v4l2->qbuf();
+    if (!result)
+    {
+        return NULL;
+    }
+
+    return result;
+}
+
 PyObject *py_set_control(PyObject *self, PyObject *args)
 {
     unsigned long handle;
@@ -130,6 +157,7 @@ static PyMethodDef py_methods[] = {
     {"start", (PyCFunction)py_start, METH_VARARGS, nullptr},
     {"stop", (PyCFunction)py_stop, METH_VARARGS, nullptr},
     {"read", (PyCFunction)py_read, METH_VARARGS, nullptr},
+    {"read2", (PyCFunction)py_read2, METH_VARARGS, nullptr},
     {"set_control", (PyCFunction)py_set_control, METH_VARARGS, nullptr},
     {"get_control", (PyCFunction)py_get_control, METH_VARARGS, nullptr},
     {"active_fps", (PyCFunction)py_active_fps, METH_VARARGS, nullptr},

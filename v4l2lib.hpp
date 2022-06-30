@@ -218,6 +218,58 @@ public:
         }
     }
 
+    void dqbuf(void **start, size_t *length)
+    {
+        int r;
+        fd_set fds;
+        struct timeval tv;
+        do
+        {
+            FD_ZERO(&fds);
+            FD_SET(fd, &fds);
+
+            /* Timeout. */
+            tv.tv_sec = 2;
+            tv.tv_usec = 0;
+
+            r = select(fd + 1, &fds, NULL, NULL, &tv);
+        } while ((r == -1 && (errno = EINTR)));
+        if (r == -1)
+        {
+            perror("select");
+            // return errno;
+            return;
+        }
+
+        CLEAR(buf);
+        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf.memory = V4L2_MEMORY_MMAP;
+        xioctl(fd, VIDIOC_DQBUF, &buf);
+        *start = buffers[buf.index].start;
+        *length = buf.bytesused;
+    }
+
+    void qbuf()
+    {
+        xioctl(fd, VIDIOC_QBUF, &buf);
+
+        // calculate fps
+        if (fps_active)
+        {
+            fps_count += 1;
+            if (fps_count >= fps_active)
+            {
+                gettimeofday(&t1, NULL);
+                float t = (t1.tv_sec - t0.tv_sec) * 1000 + (t1.tv_usec - t0.tv_usec) / 1000;
+                fps = (int)(fps_count * 1000 / t);
+                if (fps_print)
+                    printf("FPS: %d\n", fps);
+                fps_count = 0;
+                gettimeofday(&t0, NULL);
+            }
+        }
+    }
+
     /*****
      * active: the number of frame to calculate fps
      */

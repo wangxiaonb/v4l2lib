@@ -5,11 +5,15 @@ import sys
 import time
 import argparse
 import os
+import fcntl
+import select
+
 
 # User Controls
 exposure = 0x00980911  # (int) : min=4 max=906 step=1 default=800 value=800
 horizontal_flip = 0x00980914  # (bool): default=0 value=0
 vertical_flip = 0x00980915  # (bool): default=0 value=0
+synchronous_mode = 0x00982922 # (bool): default=1 value=1
 
 # Camera Controls
 # (menu):min=0 max=2 default=2 value=2 flags=read-only
@@ -31,10 +35,10 @@ link_frequency = 0x009f0901
 pixel_rate = 0x009f0902
 
 ##########################################################################
-width, height = 1280, 800
+# width, height = 1280, 800
 # width, height = 1280, 720
 # width, height = 640, 480
-# width, height = 640, 400
+width, height = 640, 400
 
 ##############################################################################
 parser = argparse.ArgumentParser(description='camera display')
@@ -59,13 +63,21 @@ value = v4l2.get_control(camera, exposure)
 v4l2.set_control(camera, analogue_gain, 24)
 value = v4l2.get_control(camera, analogue_gain)
 
-v4l2.set_control(camera, vertical_blanking, 1200)
+v4l2.set_control(camera, vertical_blanking, 1800)
 value = v4l2.get_control(camera, vertical_blanking)
 
-v4l2.active_fps(camera, 80)
+v4l2.active_fps(camera, 60)
 # v4l2.print_fps(camera, 1)
 
+# v4l2.set_control(camera, synchronous_mode, 1)
+
 v4l2.start(camera)
+
+# val = v4l2.get_control(camera, synchronous_mode)
+# v4l2.set_control(camera, synchronous_mode, 0)
+# val = v4l2.get_control(camera, synchronous_mode)
+
+# os.system("v4l2-ctl --set-ctrl=synchronous_mode=0")
 
 # os.system("i2cset -y -f 0 0x60 0x4f 0x00 0x01 i")
 # os.system("i2cset -y -f 0 0x60 0x30 0x30 0x04 i")
@@ -75,17 +87,23 @@ v4l2.start(camera)
 # os.system("i2cset -y -f 0 0x60 0x38 0x23 0x30 i")
 # os.system("i2cset -y -f 0 0x60 0x01 0x00 0x00 i")
 
+# os.system("v4l2-ctl --set-ctrl=synchronous_mode=1")
+v4l2.set_control(camera, synchronous_mode, 1)
+
 while True:
     data = v4l2.read(camera)
-    # data = bytearray(data)
 
-    image_array = np.frombuffer(data, dtype=np.uint8)
+    # image_array = np.frombuffer(data, dtype=np.uint8)
+    # image = image_array.reshape(height, width)
+
+    # image = np.asarray((height, width), bytearray(data), dtype=np.uint8)
+    image_array = np.asarray(bytearray(data), dtype=np.uint8)
     image = image_array.reshape(height, width)
 
     # image = cv2.resize(image, (640, 400))
-    image = cv2.flip(image, 0)
+    # image = cv2.flip(image, 0)
 
-    image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+    # image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
 
     fps = v4l2.get_fps(camera)
     image = cv2.putText(image, 'FPS:'+str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (127, 250, 127), 1)

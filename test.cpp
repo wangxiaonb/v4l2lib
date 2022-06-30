@@ -47,9 +47,9 @@ int main(int argc, char **argv)
 
     v4l2->open();
 
-    v4l2->set_control(V4L2_CID_EXPOSURE, 1600);
+    v4l2->set_control(V4L2_CID_EXPOSURE, 800);
 
-    v4l2->set_control(V4L2_CID_ANALOGUE_GAIN, 1000);
+    v4l2->set_control(V4L2_CID_ANALOGUE_GAIN, 20);
     r = v4l2->get_control(V4L2_CID_ANALOGUE_GAIN);
     printf("get_control, V4L2_CID_ANALOGUE_GAIN %d\n", r);
 
